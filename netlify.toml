@@ -1,0 +1,6 @@
+[build]
+  command="npm run build"
+  pulish="build"
+  functions="functions"
+[dev]
+  functionsPort=12345
