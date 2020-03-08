@@ -20,6 +20,7 @@ exports.handler = async (event, context) => {
   }
   /* parse the string body into a useable JS object */
   const receivedData = JSON.parse(event.body);
+  // console.log(receivedData.actionName);
   const UserIP = event.headers["x-nf-client-connection-ip"] || "127.0.0.1";
   // make sure not to send context.clientContext.identity.token, that is a security issue
   let dataToSend = {
