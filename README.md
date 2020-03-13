@@ -54,7 +54,9 @@ fetch("/.netlify/functions/honeycomb", {
 }).catch(console.error);
 ```
 
-You can see the results of this action in a [single commit here](https://github.com/sw-yx/frontend-observability/commit/5be976f9177ddbb412ea35357e54480b0c251084).
+You can see the results of this action in a [single commit here](https://github.com/sw-yx/frontend-observability/commit/5be976f9177ddbb412ea35357e54480b0c251084) and this is how it looks when it shows up on the Honeycomb dashboard:
+
+![image](https://user-images.githubusercontent.com/6764957/76662143-8ec22300-6553-11ea-9eb7-91d084ba16fd.png)
 
 ## Instrumenting Load/Unload Events
 
@@ -242,4 +244,20 @@ Anyway, it's two steps:
   import "./trackLoadUnload"; // new
   ```
 
+Here's an example of a raw event sent to Honeycomb:
+
+![image](https://user-images.githubusercontent.com/6764957/76662044-4a368780-6553-11ea-9347-6ea2c7179c8f.png)
+
 I had a lot more trouble with unload events - I tried all variations of `window.addEventListener("beforeunload")` and `window.onbeforeunload` and `window.onunload` and so on but couldnt reliably get them to fire when I closed the tab (rather than refreshed). This one is something I hope to revisit in future.
+
+## Querying
+
+When instrumenting is done and shipped to production, we'll start to receive a bunch of data. Of course, we don't really have production traffic on this Proof of Concept, so I can't show as much. But you can start to do queries like correlating screen height and width (and you can derive aspect ratio later):
+
+![image](https://user-images.githubusercontent.com/6764957/76662276-e2cd0780-6553-11ea-82cc-746f0375d58c.png)
+
+A lot of these fields (a mature setup will have 300-500 fields tracked) won't make sense at first, so some experience will be needed to figure out how to massage data to answer questions you need (and to instrument more things you didn't think of the first time around!)
+
+A killer feature of Honeycomb is the concept of Heatmaps and BubbleUp charts. The idea is that you often have a group of interesting datapoints and you want to find out **what sets them apart** from "normal" datapoints. Honeycomb lets you click and highlight a box over those points of interests, and then displays the quick diff for you to figure out what is unique among the metrics you track. This is helpful potentially for support and developer-adjacent usecases as well.
+
+![image](https://user-images.githubusercontent.com/6764957/76662576-c1b8e680-6554-11ea-8dcb-5a5b52131c09.png)
