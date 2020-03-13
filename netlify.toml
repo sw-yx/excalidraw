@@ -1,6 +1,6 @@
 [build]
   command="npm run build"
-  pulish="build"
+  publish="build"
   functions="functions"
 [dev]
   functionsPort=12345
