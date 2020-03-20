@@ -9,6 +9,31 @@ import { ExcalidrawElement } from "../element/types";
 import { AppState } from "../types";
 import { t } from "../i18n";
 
+function prefixKey(obj: Object, prefix: string) {
+  const newObj = {} as any;
+  Object.entries(obj).forEach(([k, v]) => {
+    newObj[`${prefix}_${k}`] = v;
+  });
+  return newObj;
+}
+function intercept(performFn: Action["perform"], eventMetadata?: Object) {
+  return function(...args: Parameters<Action["perform"]>) {
+    const infoToSend = {
+      ...eventMetadata,
+      // ...prefixKey(args[0], "elements"), // tried this, not very useful
+      ...prefixKey(args[1], "appState"),
+      action_formData: args[2],
+    };
+    fetch("/.netlify/functions/honeycomb", {
+      method: "POST",
+      body: JSON.stringify(infoToSend),
+    })
+      // .then(console.log)
+      .catch(console.error);
+    return performFn(...args);
+  };
+}
+
 export class ActionManager implements ActionsManagerInterface {
   actions: { [keyProp: string]: Action } = {};
 
@@ -53,8 +78,9 @@ export class ActionManager implements ActionsManagerInterface {
     const commitToHistory =
       data[0].commitToHistory &&
       data[0].commitToHistory(this.getAppState(), this.getElements());
+    const performFn = intercept(data[0].perform, { actionName: data[0].name });
     this.updater(
-      data[0].perform(this.getElements(), this.getAppState(), null),
+      performFn(this.getElements(), this.getAppState(), null),
       commitToHistory,
     );
     return true;
@@ -75,8 +101,11 @@ export class ActionManager implements ActionsManagerInterface {
           const commitToHistory =
             action.commitToHistory &&
             action.commitToHistory(this.getAppState(), this.getElements());
+          const performFn = intercept(action.perform, {
+            actionName: action.name,
+          });
           this.updater(
-            action.perform(this.getElements(), this.getAppState(), null),
+            performFn(this.getElements(), this.getAppState(), null),
             commitToHistory,
           );
         },
@@ -91,8 +120,11 @@ export class ActionManager implements ActionsManagerInterface {
         const commitToHistory =
           action.commitToHistory &&
           action.commitToHistory(this.getAppState(), this.getElements());
+        const performFn = intercept(action.perform, {
+          actionName: action.name,
+        });
         this.updater(
-          action.perform(this.getElements(), this.getAppState(), formState),
+          performFn(this.getElements(), this.getAppState(), formState),
           commitToHistory,
         );
       };
